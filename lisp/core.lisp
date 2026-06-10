@@ -46,3 +46,46 @@
 (defun formatear-hora()
     (local-time:format-timestring nil (local-time:now) 
         :format '((:year 4) "-" (:month 2) "-" (:day 2) " " (:hour 2) ":" (:min 2) ":" (:sec 2))))
+
+;; ============================================================
+;; FUNCIÓN: recomendacion-ciclo
+;; NATURALEZA: Pura (solo retorna valores)
+;; ESTRATEGIA: Función / Condicional
+;; IMPACTO: No destructiva
+;; ============================================================
+(defun recomendacion-ciclo(duracion)
+    (cond 
+        ((< duracion 35) "Ciclo fuera del rango optimo: muy corto")
+        ((> duracion 150) "Ciclo fuera del rango optimo: muy largo")
+        (t "Ciclo dentro del rango optimo")))
+
+;; ============================================================
+;; FUNCIÓN: duracion-ciclo
+;; NATURALEZA: Pura (solo retorna valores)
+;; ESTRATEGIA: Función / Composición de funciones
+;; IMPACTO: No destructiva
+;; ============================================================
+(defun duracion-ciclo (duracion-rojo duracion-amarillo duracion-verde)
+    (let ((total (+ duracion-rojo duracion-amarillo duracion-verde)))
+        (list total (recomendacion-ciclo total))))
+
+;; ============================================================
+;; FUNCIÓN: ciclo-por-tiempo
+;; NATURALEZA: Pura (solo retorna valores)
+;; ESTRATEGIA: Función / Composición de funciones
+;; IMPACTO: No destructiva
+;; ============================================================
+(defun ciclo-por-tiempo (minutos)
+    (let ((segundos (* minutos 60)) (duracion-ciclo (car (duracion-ciclo 90 6 120))))
+        (floor (/ segundos duracion-ciclo))))
+
+;; ============================================================
+;; FUNCIÓN: distribucion-temporal
+;; NATURALEZA: Pura
+;; ESTRATEGIA: Orden superior (mapcar)
+;; IMPACTO: No destructiva
+;; ============================================================
+(defun distribucion-temporal ()
+    (let ((hora-segundos 36000) (duracion-ciclo (car (duracion-ciclo 90 6 120))) (ciclos (floor (/ hora-segundos duracion-ciclo))) (segundos-usados (* ciclos duracion-ciclo)) (colores '((rojo 90) (amarillo 6) (verde 120))))
+        (mapcar (lambda (color)
+                    (list (car color) (* (/ (* ciclos (cadr color)) segundos-usados) 100))) colores)))
