@@ -1,3 +1,6 @@
+(defun main()
+    (timer (local-time:timestamp-to-unix(local-time:now))))
+
 ;; ============================================================
 ;; FUNCIÓN: transicion
 ;; NATURALEZA: Pura ( solo retorna valores) 
@@ -35,8 +38,10 @@
 ;; IMPACTO: No destructiva 
 ;; ============================================================
 (defun cambio-estado (estado-ant estado-actual hora-actual)
-    (format t "Tiempo [~A]: La luz ha pasado de ~A a ~A." hora-actual estado-ant estado-actual)
-    (values)) ; Funcion para remover el nil que retorna la funcion format t
+    (if (not(eq (cadr(transicion estado-ant estado-actual)) 'accion-por-defecto))
+    (progn
+        (format t "Tiempo [~A]: La luz ha pasado de ~A a ~A." hora-actual estado-ant estado-actual)
+        (values)) nil)) ; Funcion para remover el nil que retorna la funcion format t
 
 ;; ============================================================
 ;; FUNCIÓN: duracion-ciclo
@@ -84,3 +89,111 @@
         (mapcar (lambda (color)
                     (list (car color) (* (/ (cadr color) hora-segundos) 100))) colores))) 
                     ; Lista final con el color y su porcentaje expresado en numero racional
+
+;Requerimiento 7
+;; ============================================================
+;; CASOS DE PRUEBA - transicion
+;; ============================================================
+;; Caso normal:
+;; (transicion 'en-verde 'amarillo)
+;; => (EN-VERDE "cambiar-a-amarillo")
+
+;; Caso alternativo:
+;; (transicion 'en-rojo 'verde)
+;; => (EN-ROJO "cambiar-a-verde")
+
+;; Caso de error:
+;; (transicion 'en-verde 'azul)
+;; => (EN-VERDE ACCION-POR-DEFECTO)
+
+;; ============================================================
+;; CASOS DE PRUEBA - timer
+;; ============================================================
+;; Caso normal:
+;; (timer 50)
+;; => VERDE
+
+;; Caso alternativo:
+;; (timer 123)
+;; => AMARILLO
+
+;; Caso de error:
+;; (timer "hola")
+;; => Error de tipo (MOD requiere un número)
+
+;; ============================================================
+;; CASOS DE PRUEBA - cambio-estado
+;; ============================================================
+;; Caso normal:
+;; (cambio-estado 'rojo 'verde 1000)
+;; => Imprime:
+;; Tiempo [1000]: La luz ha pasado de ROJO a VERDE.
+
+;; Caso alternativo:
+;; (cambio-estado 'verde 'amarillo 1200)
+;; => NIL
+
+;; Caso de error:
+;; (cambio-estado 'rojo)
+;; => Error por cantidad incorrecta de argumentos.
+
+;; ============================================================
+;; CASOS DE PRUEBA - duracion-ciclo
+;; ============================================================
+;; Caso normal:
+;; (duracion-ciclo 120 6 90)
+;; => (216 "Ciclo fuera del rango optimo: muy largo")
+
+;; Caso alternativo:
+;; (duracion-ciclo 20 5 10)
+;; => (35 "Ciclo dentro del rango optimo")
+
+;; Caso de error:
+;; (duracion-ciclo "120" 6 90)
+;; => Error de tipo al intentar sumar.
+
+;; ============================================================
+;; CASOS DE PRUEBA - recomendacion-ciclo
+;; ============================================================
+;; Caso normal:
+;; (recomendacion-ciclo 100)
+;; => "Ciclo dentro del rango optimo"
+
+;; Caso alternativo:
+;; (recomendacion-ciclo 20)
+;; => "Ciclo fuera del rango optimo: muy corto"
+
+;; Caso de error:
+;; (recomendacion-ciclo 'hola)
+;; => Error de tipo en la comparación.
+
+;; ============================================================
+;; CASOS DE PRUEBA - ciclos-por-tiempo
+;; ============================================================
+;; Caso normal:
+;; (ciclos-por-tiempo 60)
+;; => 16 ;2/3
+
+;; Caso alternativo:
+;; (ciclos-por-tiempo 30)
+;; => 8; 1/3
+
+;; Caso de error:
+;; (ciclos-por-tiempo "60")
+;; => Error de tipo al multiplicar.
+
+;; ============================================================
+;; CASOS DE PRUEBA - distribucion-temporal
+;; ============================================================
+;; Caso normal:
+;; (distribucion-temporal)
+;; => ((VERDE 160/3) (AMARILLO 8/3) (ROJO 40))
+
+;; Caso alternativo:
+;; Ejecutar varias veces.
+;; => Debe devolver siempre los mismos porcentajes
+;; mientras las duraciones del ciclo no cambien.
+
+;; Caso de error:
+;; Si se modifica el código para que la duración total sea 0:
+;; => Error de división por cero.
