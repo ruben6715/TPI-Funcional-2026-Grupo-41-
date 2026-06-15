@@ -1,5 +1,5 @@
-(defun main()
-    (timer (local-time:timestamp-to-unix(local-time:now))))
+;; Iteracion 2 
+;; EXTENSION 1
 
 ;; ============================================================
 ;; FUNCIÓN: transicion
@@ -9,27 +9,37 @@
 ;; ============================================================
 (defun transicion (color-actual cambiar-a)
     (cond 
-        ;Ciclo del semáforo: Verde-> Amarillo -> Rojo -> Verde   
-        ((and (eq color-actual 'en-verde)(eq cambiar-a 'amarillo)) (list 'en-verde "cambiar-a-amarillo"))
-        ((and (eq color-actual 'en-amarillo)(eq cambiar-a 'rojo)) (list 'en-amarillo "cambiar-a-rojo"))   
-        ((and (eq color-actual 'en-rojo)(eq cambiar-a 'verde )) (list 'en-rojo "cambiar-a-verde"))
-        (t (list color-actual 'accion-por-defecto)))) ;Cual otra transicion no valerá y devolverá 'acción-por-defecto
+        ;Ciclo del semáforo: Verde-> Verde intermitente->Amarillo -> Amarillo intermitente -> Rojo -> Rojo intermitente -> Verde   
+        ((and (eq color-actual 'en-verde)(eq cambiar-a 'verde-intermitente)) (list 'en-verde "cambiar-a-verde-intermitente"))
+        ((and (eq color-actual 'en-verde-intermitente)(eq cambiar-a 'amarillo)) (list 'en-verde-intermitente "cambiar-a-amarillo"))
+        ((and (eq color-actual 'en-amarillo)(eq cambiar-a 'amarillo-intermitente)) (list 'en-amarillo "cambiar-a-amarillo-intermitente"))
+        ((and (eq color-actual 'en-amarillo-intermitente)(eq cambiar-a 'rojo)) (list 'en-amarillo-intermitente "cambiar-a-rojo"))
+        ((and (eq color-actual 'en-rojo)(eq cambiar-a 'rojo-intermitente)) (list 'en-rojo "cambiar-a-rojo-intermitente"))
+        ((and (eq color-actual 'en-rojo-intermitente)(eq cambiar-a 'verde )) (list 'en-rojo-intermitente "cambiar-a-verde"))
+        (t (list color-actual 'accion-por-defecto)))) ;Cualquier otra transicion no valerá y devolverá 'acción-por-defecto
 
 ;; ============================================================
 ;; FUNCIÓN: timer
 ;; NATURALEZA: Impura (puede imprimir en pantalla)
-;; ESTRATEGIA: Función / Condicional 
-;; IMPACTO: No destructiva 
+;; ESTRATEGIA: Función / Condicional
+;; IMPACTO: No destructiva
 ;; ============================================================
-(defun timer(hora-unix) ;Recibe como parametro la hora del sistema en formato unix o Epoch
-    (let( (tiempo (mod hora-unix 216)) ) ;Se toma el resto de la division de la hora con la duracion del ciclo semaforico (216 segundos) 
-        (cond 
-            ((= tiempo 0) (cambio-estado 'rojo 'verde hora-unix))             ; Ciclo completo:
-            ((= tiempo 120) (cambio-estado 'verde 'amarillo hora-unix))       ; Verde -------> 0 - 119
-            ((= tiempo 126) (cambio-estado 'amarillo 'rojo hora-unix))        ; Amarillo ----> 120 - 125
-            ((< tiempo 120) 'verde)                                           ; Rojo --------> 126 - 215
-            ((< tiempo 126) 'amarillo)                                   
-            (T 'rojo)))) ; Si no se cumplen los anteriores períodos, por lógica se trata del color rojo
+(defun timer (hora-unix) ; Recibe como parámetro la hora del sistema en formato Unix (Epoch)
+    (let ((tiempo (mod hora-unix 225))) ; Obtiene la posición actual dentro del ciclo semafórico de 225 segundos
+        (cond
+            ((= tiempo 0)   (cambio-estado 'rojo-intermitente 'verde hora-unix))
+            ((= tiempo 120) (cambio-estado 'verde 'verde-intermitente hora-unix))
+            ((= tiempo 123) (cambio-estado 'verde-intermitente 'amarillo hora-unix))
+            ((= tiempo 129) (cambio-estado 'amarillo 'amarillo-intermitente hora-unix))
+            ((= tiempo 132) (cambio-estado 'amarillo-intermitente 'rojo hora-unix))
+            ((= tiempo 222) (cambio-estado 'rojo 'rojo-intermitente hora-unix))
+
+            ((< tiempo 120) 'verde)                 ; Verde ----------------> 0 - 119
+            ((< tiempo 123) 'verde-intermitente)    ; Verde intermitente ---> 120 - 122
+            ((< tiempo 129) 'amarillo)              ; Amarillo -------------> 123 - 128
+            ((< tiempo 132) 'amarillo-intermitente) ; Amarillo interm. -----> 129 - 131
+            ((< tiempo 222) 'rojo)                  ; Rojo -----------------> 132 - 221
+            (t 'rojo-intermitente))))               ; Rojo intermitente ----> 222 - 224
 
 ;; ============================================================
 ;; FUNCIÓN: cambio-estado
@@ -38,20 +48,23 @@
 ;; IMPACTO: No destructiva 
 ;; ============================================================
 (defun cambio-estado (estado-ant estado-actual hora-actual)
-    (if (not(eq (cadr(transicion estado-ant estado-actual)) 'accion-por-defecto))
-    (progn
-        (format t "Tiempo [~A]: La luz ha pasado de ~A a ~A." hora-actual estado-ant estado-actual)
-        (values)) nil)) ; Funcion para remover el nil que retorna la funcion format t
-
+    (format t "Tiempo [~A]: La luz ha pasado de ~A a ~A." hora-actual estado-ant estado-actual)
+    (values)) ; Funcion para remover el nil que retorna la funcion format t
 ;; ============================================================
 ;; FUNCIÓN: duracion-ciclo
 ;; NATURALEZA: Pura (solo retorna valores)
 ;; ESTRATEGIA: Función / Composición de funciones
 ;; IMPACTO: No destructiva
 ;; ============================================================
-(defun duracion-ciclo (duracion-verde duracion-amarillo duracion-rojo) ;Recibe las duraciones en segundos de los colores
-    (let ((total (+ duracion-verde duracion-amarillo duracion-rojo))) 
-        (list total (recomendacion-ciclo total)))) ; Arma una lista con el total y el análisis de a funcion recomendacion-ciclo
+(defun duracion-ciclo (duracion-verde duracion-amarillo duracion-rojo)
+    ; Recibe las duraciones de los estados principales del semáforo.
+    ; Los tiempos de intermitencia se agregan internamente al cálculo
+    ; de la duración total del ciclo.
+    (let ((total (+ duracion-verde duracion-amarillo duracion-rojo 9))) ; La constante 9 = 3 segundos por cada fase intermitente
+        (list total (recomendacion-ciclo total))))
+        ; Devuelve una lista con:
+        ; 1) Duración total del ciclo
+        ; 2) Recomendación obtenida mediante recomendacion-ciclo
 
 ;; ============================================================
 ;; FUNCIÓN: recomendacion-ciclo
@@ -67,14 +80,16 @@
         (t "Ciclo dentro del rango optimo")))
 
 ;; ============================================================
-;; FUNCIÓN: ciclo-por-tiempo
+;; FUNCIÓN: ciclos-por-tiempo
 ;; NATURALEZA: Pura (solo retorna valores)
 ;; ESTRATEGIA: Función / Composición de funciones
 ;; IMPACTO: No destructiva
 ;; ============================================================
 (defun ciclos-por-tiempo (minutos)
-    (let ((segundos (* minutos 60)) (duracion-total (car (duracion-ciclo 120 6 90)))) ;Con el car de la funcion obtiene el total de la duracion del ciclo
-        (floor (/ segundos duracion-total)))) ; floor necesearia porque la division puede devolver un número decimal
+    (let ((segundos (* minutos 60))
+          (duracion-total (car (duracion-ciclo 120 6 90)))) ;Obtiene la duración total del ciclo semafórico (incluyendo los estados intermitentes)
+        (floor (/ segundos duracion-total))))
+        ;Calcula cuántos ciclos completos pueden ejecutarse en el intervalo de tiempo indicado
         
 ;; ============================================================
 ;; FUNCIÓN: distribucion-temporal
@@ -83,117 +98,43 @@
 ;; IMPACTO: No destructiva
 ;; ============================================================
 (defun distribucion-temporal ()
-    (let* ((hora-segundos 3600) (ciclo-hora (ciclos-por-tiempo(/ hora-segundos 60))) ;Se obtiene la cantidad de ciclos en una hora
-          (colores (list (list 'verde (* 120 ciclo-hora)) (list 'amarillo (* 6 ciclo-hora)) (list 'rojo (* 90 ciclo-hora)))))
-          ;Lista con los colores y sus respectivos segundos con respecto a los ciclos por hora
+    (let* ((hora-segundos 3600)
+           (ciclo-hora (ciclos-por-tiempo (/ hora-segundos 60)))
+           ; Se obtiene la cantidad de ciclos completos que ocurren en una hora
+
+           (colores (list (list 'verde (* 120 ciclo-hora))
+                          (list 'amarillo (* 6 ciclo-hora))
+                          (list 'rojo (* 90 ciclo-hora)))))
+           ; Lista con cada color y la cantidad total de segundos
+           ; acumulados durante una hora considerando todos los ciclos
+
         (mapcar (lambda (color)
-                    (list (car color) (* (/ (cadr color) hora-segundos) 100))) colores))) 
-                    ; Lista final con el color y su porcentaje expresado en numero racional
-
-;Requerimiento 7
-;; ============================================================
-;; CASOS DE PRUEBA - transicion
-;; ============================================================
-;; Caso normal:
-;; (transicion 'en-verde 'amarillo)
-;; => (EN-VERDE "cambiar-a-amarillo")
-
-;; Caso alternativo:
-;; (transicion 'en-rojo 'verde)
-;; => (EN-ROJO "cambiar-a-verde")
-
-;; Caso de error:
-;; (transicion 'en-verde 'azul)
-;; => (EN-VERDE ACCION-POR-DEFECTO)
+                    (list (car color)
+                          (* (/ (cadr color) hora-segundos) 100)))
+                colores)))
+                ; Genera una lista con:
+                ; (nombre-color porcentaje-del-tiempo-en-una-hora)
+                ; El porcentaje se calcula respecto de los 3600 segundos
+                ; totales de una hora
 
 ;; ============================================================
-;; CASOS DE PRUEBA - timer
+;; FUNCIÓN: distribucion-temporal
+;; NATURALEZA: Pura
+;; ESTRATEGIA: Orden superior (mapcar)
+;; IMPACTO: No destructiva
 ;; ============================================================
-;; Caso normal:
-;; (timer 50)
-;; => VERDE
-
-;; Caso alternativo:
-;; (timer 123)
-;; => AMARILLO
-
-;; Caso de error:
-;; (timer "hola")
-;; => Error de tipo (MOD requiere un número)
-
-;; ============================================================
-;; CASOS DE PRUEBA - cambio-estado
-;; ============================================================
-;; Caso normal:
-;; (cambio-estado 'rojo 'verde 1000)
-;; => Imprime:
-;; Tiempo [1000]: La luz ha pasado de ROJO a VERDE.
-
-;; Caso alternativo:
-;; (cambio-estado 'verde 'amarillo 1200)
-;; => NIL
-
-;; Caso de error:
-;; (cambio-estado 'rojo)
-;; => Error por cantidad incorrecta de argumentos.
-
-;; ============================================================
-;; CASOS DE PRUEBA - duracion-ciclo
-;; ============================================================
-;; Caso normal:
-;; (duracion-ciclo 120 6 90)
-;; => (216 "Ciclo fuera del rango optimo: muy largo")
-
-;; Caso alternativo:
-;; (duracion-ciclo 20 5 10)
-;; => (35 "Ciclo dentro del rango optimo")
-
-;; Caso de error:
-;; (duracion-ciclo "120" 6 90)
-;; => Error de tipo al intentar sumar.
-
-;; ============================================================
-;; CASOS DE PRUEBA - recomendacion-ciclo
-;; ============================================================
-;; Caso normal:
-;; (recomendacion-ciclo 100)
-;; => "Ciclo dentro del rango optimo"
-
-;; Caso alternativo:
-;; (recomendacion-ciclo 20)
-;; => "Ciclo fuera del rango optimo: muy corto"
-
-;; Caso de error:
-;; (recomendacion-ciclo 'hola)
-;; => Error de tipo en la comparación.
-
-;; ============================================================
-;; CASOS DE PRUEBA - ciclos-por-tiempo
-;; ============================================================
-;; Caso normal:
-;; (ciclos-por-tiempo 60)
-;; => 16 ;2/3
-
-;; Caso alternativo:
-;; (ciclos-por-tiempo 30)
-;; => 8; 1/3
-
-;; Caso de error:
-;; (ciclos-por-tiempo "60")
-;; => Error de tipo al multiplicar.
-
-;; ============================================================
-;; CASOS DE PRUEBA - distribucion-temporal
-;; ============================================================
-;; Caso normal:
-;; (distribucion-temporal)
-;; => ((VERDE 160/3) (AMARILLO 8/3) (ROJO 40))
-
-;; Caso alternativo:
-;; Ejecutar varias veces.
-;; => Debe devolver siempre los mismos porcentajes
-;; mientras las duraciones del ciclo no cambien.
-
-;; Caso de error:
-;; Si se modifica el código para que la duración total sea 0:
-;; => Error de división por cero.
+(defun distribucion-temporal ()
+    (let* ((hora-segundos 3600)
+            (ciclo-hora (ciclos-por-tiempo (/ hora-segundos 60))) ;Se obtiene la cantidad de ciclos en una hora
+            (colores (list
+                        (list 'verde (* 120 ciclo-hora))
+                        (list 'verde-intermitente (* 3 ciclo-hora))
+                        (list 'amarillo (* 6 ciclo-hora))
+                        (list 'amarillo-intermitente (* 3 ciclo-hora))
+                        (list 'rojo (* 90 ciclo-hora))
+                        (list 'rojo-intermitente (* 3 ciclo-hora)))))
+            ;Lista con los estados del semáforo y sus respectivos segundos acumulados con respecto a los ciclos por hora
+        (mapcar (lambda (color)
+                    (list (car color)
+                          (* (/ (cadr color) hora-segundos) 100)))colores)))
+                ;Lista final con el estado y su porcentaje de ocupación dentro de una hora expresado en número racional
