@@ -18,6 +18,8 @@
         ((and (eq color-actual 'en-rojo-intermitente)(eq cambiar-a 'verde )) (list 'en-rojo-intermitente "cambiar-a-verde"))
         (t (list color-actual 'accion-por-defecto)))) ;Cualquier otra transicion no valerá y devolverá 'acción-por-defecto
 
+;; EXTENSION 2 
+
 ;; ============================================================
 ;; FUNCIÓN: timer
 ;; NATURALEZA: Impura (puede imprimir en pantalla)
@@ -27,12 +29,12 @@
 (defun timer (hora-unix) ; Recibe como parámetro la hora del sistema en formato Unix (Epoch)
     (let ((tiempo (mod hora-unix 225))) ; Obtiene la posición actual dentro del ciclo semafórico de 225 segundos
         (cond
-            ((= tiempo 0)   (cambio-estado 'rojo-intermitente 'verde hora-unix))
-            ((= tiempo 120) (cambio-estado 'verde 'verde-intermitente hora-unix))
-            ((= tiempo 123) (cambio-estado 'verde-intermitente 'amarillo hora-unix))
-            ((= tiempo 129) (cambio-estado 'amarillo 'amarillo-intermitente hora-unix))
-            ((= tiempo 132) (cambio-estado 'amarillo-intermitente 'rojo hora-unix))
-            ((= tiempo 222) (cambio-estado 'rojo 'rojo-intermitente hora-unix))
+            ((= tiempo 0)   (informe 'rojo-intermitente 'verde hora-unix))
+            ((= tiempo 120) (informe 'verde 'verde-intermitente hora-unix))
+            ((= tiempo 123) (informe 'verde-intermitente 'amarillo hora-unix))
+            ((= tiempo 129) (informe 'amarillo 'amarillo-intermitente hora-unix))
+            ((= tiempo 132) (informe 'amarillo-intermitente 'rojo hora-unix))
+            ((= tiempo 222) (informe 'rojo 'rojo-intermitente hora-unix))
 
             ((< tiempo 120) 'verde)                 ; Verde ----------------> 0 - 119
             ((< tiempo 123) 'verde-intermitente)    ; Verde intermitente ---> 120 - 122
@@ -42,14 +44,34 @@
             (t 'rojo-intermitente))))               ; Rojo intermitente ----> 222 - 224
 
 ;; ============================================================
-;; FUNCIÓN: cambio-estado
-;; NATURALEZA: Impura (imprime en pantalla) 
-;; ESTRATEGIA: Composición de funciones 
+;; FUNCIÓN: informe (logging)
+;; NATURALEZA: Impura (escribe en archivo)
+;; ESTRATEGIA: Composicion de funciones
+;; IMPACTO: No destructiva
+;; ============================================================
+(defun informe (estado-ant estado-actual hora-actual)
+    (with-open-file (stream "informe-ejecucion-semaforo.txt"
+                 :direction :output
+                 :if-exists :append ;Si existe el archivo agrega no sobreescribe
+                 :if-does-not-exist :create) ;Si no existe el archivo, lo crea
+        (when (= (file-length stream) 0)
+            (format stream "Informe de Ejecución del Sistema Semafórico~%")
+            (format stream "=========================================~%"))
+
+        (format stream "~%[~A]: La luz ha pasado de ~A a ~A." (formatear-hora hora-actual) estado-ant estado-actual)
+        (format stream "~% --- Fin del Informe ---")))
+
+;; ============================================================
+;; FUNCIÓN: formatear-hora
+;; NATURALEZA: Pura (devuelve la hora actual en formato legible para el usuario)
+;; ESTRATEGIA: Composición funcional 
 ;; IMPACTO: No destructiva 
 ;; ============================================================
-(defun cambio-estado (estado-ant estado-actual hora-actual)
-    (format t "Tiempo [~A]: La luz ha pasado de ~A a ~A." hora-actual estado-ant estado-actual)
-    (values)) ; Funcion para remover el nil que retorna la funcion format t
+(defun formatear-hora(hora-actual) ; Función que convierteel formato de hora a uno más amigable para el usuario: [2026-01-30 00:01:30]
+    (local-time:format-timestring nil (local-time:unix-to-timestamp hora-actual) ; Utiliza la función format-timestring de la libreria local-time
+        :format '((:year 4) "-" (:month 2) "-" (:day 2) " " (:hour 2) ":" (:min 2) ":" (:sec 2))))
+        ; Establece 4 digitos para el año, 2 para el mes, 2 para el dia, etc. Ademas de agregar caracteres en medio como "-" y ":"
+
 ;; ============================================================
 ;; FUNCIÓN: duracion-ciclo
 ;; NATURALEZA: Pura (solo retorna valores)
