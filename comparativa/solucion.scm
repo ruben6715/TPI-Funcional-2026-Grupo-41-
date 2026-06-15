@@ -8,13 +8,9 @@
 (define (timer hora-unix) ; Recibe como parámetro la hora del sistema en formato Unix (Epoch)
   (let ((tiempo (modulo hora-unix 216))) ; Obtiene la posición actual dentro del ciclo semafórico de 216 segundos
     (cond 
-      ((= tiempo 0)  (cambio-estado 'verde 'amarillo))
-      ((= tiempo 90) (cambio-estado 'rojo 'verde))
-      ((= tiempo 96) (cambio-estado 'amarillo 'rojo))
-     
-      ((< tiempo 90) 'rojo)    ; Rojo -----------------> 0 - 89
-      ((< tiempo 96) 'amarillo)    ; Amarillo -------------> 90- 95
-      (else          'verde))))      ; Verde ----------------> 96 - 120
+      ((< tiempo 120) 'verde)                ; Verde -----------------> 0 - 119
+      ((< tiempo 126) 'amarillo)             ; Amarillo -------------> 120- 125
+      (else 'rojo))))                        ; Rojo ----------------> 126 - 215
 ;; ========================================================
 ;; FUNCIÓN: transicion
 ;; NATURALEZA: Pura (No produce efectos secundarios y mapea entradas a salidas de forma determinista)
