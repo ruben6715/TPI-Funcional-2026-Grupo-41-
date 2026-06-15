@@ -1,4 +1,4 @@
-# TrPI-Funcional-2026-Grupo-41
+# TPI-Funcional-2026-Grupo-41
 > **Trabajo Práctico Integrador 2026** > **Asignatura:** Paradigmas de Programación (Paradigma Funcional)  
 > **Institución:** Universidad Nacional del Nordeste (UNNE)  
 > **Facultad:** Facultad de Ciencias Exactas y Naturales y Agrimensura (FaCENA)  
