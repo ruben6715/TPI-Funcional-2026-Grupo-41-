@@ -113,31 +113,7 @@
         (floor (/ segundos duracion-total))))
         ;Calcula cuántos ciclos completos pueden ejecutarse en el intervalo de tiempo indicado
         
-;; ============================================================
-;; FUNCIÓN: distribucion-temporal
-;; NATURALEZA: Pura
-;; ESTRATEGIA: Orden superior (mapcar)
-;; IMPACTO: No destructiva
-;; ============================================================
-(defun distribucion-temporal ()
-    (let* ((hora-segundos 3600)
-           (ciclo-hora (ciclos-por-tiempo (/ hora-segundos 60)))
-           ; Se obtiene la cantidad de ciclos completos que ocurren en una hora
 
-           (colores (list (list 'verde (* 120 ciclo-hora))
-                          (list 'amarillo (* 6 ciclo-hora))
-                          (list 'rojo (* 90 ciclo-hora)))))
-           ; Lista con cada color y la cantidad total de segundos
-           ; acumulados durante una hora considerando todos los ciclos
-
-        (mapcar (lambda (color)
-                    (list (car color)
-                          (* (/ (cadr color) hora-segundos) 100)))
-                colores)))
-                ; Genera una lista con:
-                ; (nombre-color porcentaje-del-tiempo-en-una-hora)
-                ; El porcentaje se calcula respecto de los 3600 segundos
-                ; totales de una hora
 
 ;; ============================================================
 ;; FUNCIÓN: distribucion-temporal
