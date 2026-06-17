@@ -15,7 +15,7 @@
 | Romero Férnandez, Ruben Tiburcio | [@ruben6715](https://github.com/ruben6715) |
 | Sarli Ochat, Melina | [@meliochat](https://github.com/meliochat) |
 
-📺 **Enlace a la Defensa Técnica (YouTube):** [Video explicativo del flujo de datos (5-10 min)](https://youtube.com/tu-enlace-aqui)
+📺 **Enlace a la Defensa Técnica (YouTube):** [Video explicativo del flujo de datos (5-10 min)](https://www.youtube.com/watch?v=Lx8mlBkgCyw)
 
 ---
 
@@ -114,7 +114,7 @@ de los commits
 ```
 ---
 ## 🧪 Aseguramiento de la Calidad (Requerimiento 7)
-Para dar estricto cumplimiento al Requerimiento 7 solicitado por el equipo de Control de Calidad (QA), el archivo `lisp/core.lisp` incluye bloques dedicados de casos de prueba en el *(**commit cc4bea5**)* listos para ser copiados y pegados directamente sobre la consola de ejecución.
+Para dar estricto cumplimiento al Requerimiento 7 solicitado por el equipo de Control de Calidad (QA), el archivo `lisp/core.lisp` incluye bloques dedicados de casos de prueba en el (**commit cc4bea5 en** `lisp/core.lisp`) listos para ser copiados y pegados directamente sobre la consola de ejecución.
 
 #### Cada bloque metodológico evalúa:
 * **Flujo Normal (Camino Feliz):** Verificación de respuestas correctas bajo entradas ideales (ej. transiciones válidas, cálculo de ciclos estandarizados).
